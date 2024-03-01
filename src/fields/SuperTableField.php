@@ -1,4 +1,5 @@
 <?php
+
 namespace verbb\supertable\fields;
 
 use craft\errors\InvalidFieldException;
@@ -457,7 +458,7 @@ class SuperTableField extends Field implements EagerLoadingFieldInterface, GqlIn
             ];
         }
 
-         // Sort them by name
+        // Sort them by name
         ArrayHelper::multisort($fieldTypeOptions['new'], 'label');
 
         // Prepare block type field data
@@ -506,7 +507,7 @@ class SuperTableField extends Field implements EagerLoadingFieldInterface, GqlIn
                     if (!$field->getIsNew()) {
                         $fieldTypeOptions[$field->id] = [];
                         $compatibleFieldTypes = $fieldsService->getCompatibleFieldTypes($field, true);
-                        
+
                         foreach ($allFieldTypes as $class) {
                             // No Super Table-Inception, sorry buddy.
                             if ($class !== self::class && ($class === get_class($field) || $class::isSelectable())) {
@@ -683,7 +684,7 @@ class SuperTableField extends Field implements EagerLoadingFieldInterface, GqlIn
                     $ids = is_string($ids) ? StringHelper::split($ids) : [$ids];
                 }
 
-                $ids = array_map(function($id) {
+                $ids = array_map(function ($id) {
                     return $id instanceof SuperTableBlockElement ? $id->id : (int)$id;
                 }, $ids);
 
@@ -705,7 +706,7 @@ class SuperTableField extends Field implements EagerLoadingFieldInterface, GqlIn
                 Craft::$app->getView()->renderObjectTemplate($this->propagationKeyFormat, $element) !== ''
             );
         }
-        
+
         return $this->propagationMethod !== self::PROPAGATION_METHOD_ALL;
     }
 
@@ -1136,7 +1137,7 @@ class SuperTableField extends Field implements EagerLoadingFieldInterface, GqlIn
         if ($resetValue || $isNew) {
             /** @var SuperTableBlockQuery|Collection $query */
             $value = $element->getFieldValue($this->handle);
-            
+
             if ($value instanceof SuperTableBlockQuery) {
                 $this->_populateQuery($value, $element);
                 $value->clearCachedResult();
@@ -1156,18 +1157,16 @@ class SuperTableField extends Field implements EagerLoadingFieldInterface, GqlIn
         }
 
         // Delete any SuperTable blocks that belong to this element(s)
-        foreach (Craft::$app->getSites()->getAllSiteIds() as $siteId) {
-            $elementsService = Craft::$app->getElements();
-            $supertableBlocks = SuperTableBlockElement::find()
-                ->status(null)
-                ->siteId($siteId)
-                ->primaryOwnerId($element->id)
-                ->all();
+        $elementsService = Craft::$app->getElements();
+        $supertableBlocks = SuperTableBlockElement::find()
+            ->status(null)
+            ->siteId('*')
+            ->primaryOwnerId($element->id)
+            ->all();
 
-            foreach ($supertableBlocks as $supertableBlock) {
-                $supertableBlock->deletedWithOwner = true;
-                $elementsService->deleteElement($supertableBlock, $element->hardDelete);
-            }
+        foreach ($supertableBlocks as $supertableBlock) {
+            $supertableBlock->deletedWithOwner = true;
+            $elementsService->deleteElement($supertableBlock, $element->hardDelete);
         }
 
         return true;
